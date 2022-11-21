@@ -1,6 +1,6 @@
 # SETUP
 
-$ apt-get install python3 pip3
+$ apt-get install python3 python3-pip
 
 $ pip3 install 
 
