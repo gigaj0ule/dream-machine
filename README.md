@@ -28,8 +28,6 @@ $ python3 ./dream_machine/txt2img.py
 
 # DEMO
 
-http://dreammachine.thotcrime.org:8080/
-
 ssh zbox@dreammachine.thotcrime.org -p 8079 
 
 password: recreation 
@@ -37,3 +35,5 @@ password: recreation
 cd ~/Desktop/dream-machine 
 
 python3 dream_machine/txt2img.py
+
+ouptut images: http://dreammachine.thotcrime.org:8080/output_txt2img
