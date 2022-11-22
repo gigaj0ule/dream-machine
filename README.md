@@ -6,7 +6,7 @@ $ git clone https://github.com/gigaj0ule/dream-machine.git
 
 $ cd dream-machine
 
-$ pip3 install torch numpy omegaconf tqdm einops torchvision pytorch_lightning pandas transformers 
+$ pip3 install torch numpy omegaconf tqdm einops torchvision pytorch_lightning pandas transformers taming-transformers
 
 $ mkdir ai_models
 
