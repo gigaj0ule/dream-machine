@@ -306,14 +306,14 @@ if __name__ == "__main__":
 
 
     # Data to be written
-    dictionary = {
+    json_dictionary = {
         "prompt": varargs.prompt,
         "ckpt": varargs.ckpt,
         "seed": varargs.seed
     }
     
     # Serializing json
-    json_object = json.dumps(dictionary, indent=4)
+    json_object = json.dumps(json_dictionary, indent=4)
     
     # Writing to .json
     with open("txt2img.json", "w") as outfile:
@@ -468,13 +468,27 @@ if __name__ == "__main__":
                         x_sample = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
                         x_sample = 255.0 * rearrange(x_sample[0].cpu().numpy(), "c h w -> h w c")
 
-                        Image.fromarray(x_sample.astype(np.uint8)).save(
-                            os.path.join(sample_path, "seed_" + str(varargs.seed) + "_" + f"{base_count:05}.{varargs.format}")
-                        )
+                        this_image_path = os.path.join(sample_path, "seed_" + str(varargs.seed) + "_" + f"{base_count:05}")
+
+                        # Save this image
+                        Image.fromarray(x_sample.astype(np.uint8)).save( f"{this_image_path}.{varargs.format}" )
+
+                        # Save image metadata
+                        json_object = json.dumps(json_dictionary, indent=4)
                         
+                        # Writing to .json
+                        with open(f"{this_image_path}.json", "w") as outfile:
+                            outfile.write(json_object)
+
+                        # save most recent image to local file
+                        Image.fromarray(x_sample.astype(np.uint8)).save(
+                            os.path.join(outpath, f"latest.{varargs.format}")
+                        )
+
                         seeds += str(varargs.seed) + ","
                         varargs.seed += 1
                         base_count += 1
+
 
                     if varargs.device != "cpu":
                         mem = torch.cuda.memory_allocated() / 1e6
