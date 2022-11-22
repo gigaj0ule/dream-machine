@@ -1,3 +1,8 @@
+# DREAM MACHINE
+
+Ez-to-use diffusion artmaker for low power graphics cards
+
+
 # SETUP
 
 $ apt install python3 python3-pip git
