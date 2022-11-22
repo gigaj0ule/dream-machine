@@ -12,7 +12,7 @@ $ mkdir ai_models
 
 $ cd ai_models
 
-$ wget http://dreammachine.thotcrime.org:8080/ai_models/[the model u want].ckpt
+$ wget http://dreammachine.thotcrime.org:8080/ai_models/[the_model_u_want].ckpt
 
 
 
