@@ -14,7 +14,7 @@ $ cd ai_models
 
 $ wget http://dreammachine.thotcrime.org:8080/ai_models/[the_model_u_want].ckpt
 
-Visit http://dreammachine.thotcrime.org:8080/ai_models/ to see what models are available
+(visit http://dreammachine.thotcrime.org:8080/ai_models/ to see what models are available)
 
 
 
@@ -28,12 +28,12 @@ $ python3 ./dream_machine/txt2img.py
 
 # DEMO
 
-ssh zbox@dreammachine.thotcrime.org -p 8079 
+$ ssh zbox@dreammachine.thotcrime.org -p 8079 
 
-password: recreation 
+$ password: recreation 
 
-cd ~/Desktop/dream-machine 
+$ cd ~/Desktop/dream-machine 
 
-python3 dream_machine/txt2img.py
+$ python3 dream_machine/txt2img.py
 
-ouptut images: http://dreammachine.thotcrime.org:8080/output_txt2img
+(ouptut images: http://dreammachine.thotcrime.org:8080/output_txt2img)
