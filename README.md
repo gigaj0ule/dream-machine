@@ -14,6 +14,8 @@ $ cd ai_models
 
 $ wget http://dreammachine.thotcrime.org:8080/ai_models/[the_model_u_want].ckpt
 
+Visit http://dreammachine.thotcrime.org:8080/ai_models/ to see what models are available
+
 
 
 
