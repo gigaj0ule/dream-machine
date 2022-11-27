@@ -279,7 +279,6 @@ if __name__ == "__main__":
         print(f"║ Let's dream about '{varargs.prompt}'")
         print(f"╚══════════════════")
 
-
     tic = time.time()
     os.makedirs(varargs.outdir, exist_ok=True)
     outpath = varargs.outdir
@@ -291,7 +290,7 @@ if __name__ == "__main__":
         print(f"╔══════════════════")
         print(f"║ No seed was specified with --seed")
         print(f"║")
-        varargs.seed = int(input(f"║ Enter seed, or press enter for random: ") or randint(0, 1000000))
+        varargs.seed = int(input(f"║ Enter seed, or press enter for random: ") or randint(0, 1000))
         print(f"║")
         print(f"║ Seeding AI with '{varargs.seed}'")
         print(f"╚══════════════════")

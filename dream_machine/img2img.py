@@ -1,4 +1,4 @@
-import argparse, os, re, glob, json
+import argparse, os, re, glob, json, pathlib
 import torch
 import numpy as np
 from random import randint
@@ -18,6 +18,8 @@ from einops import rearrange, repeat
 import sys
 sys.path.append('.')
 from ldm.util import instantiate_from_config
+
+import shutil
 
 from optimUtils import split_weighted_subprompts, logger
 from transformers import logging
@@ -332,14 +334,13 @@ if __name__ == "__main__":
     outpath = varargs.outdir
     grid_count = len(os.listdir(outpath)) - 1
 
-
     # If no seed exists...
     if varargs.seed == None:
 
         print(f"╔══════════════════")
         print(f"║ No seed was specified with --seed")
         print(f"║")
-        varargs.seed = int(input(f"║ Enter seed, or press enter for random: ") or randint(0, 1000000))
+        varargs.seed = int(input(f"║ Enter seed, or press enter for random: ") or randint(0, 1000))
         print(f"║")
         print(f"║ Seeding AI with '{varargs.seed}'")
         print(f"╚══════════════════")
@@ -532,7 +533,7 @@ if __name__ == "__main__":
                         Image.fromarray(x_sample.astype(np.uint8)).save( f"{this_image_path}.{varargs.format}" )
 
                         # Save reference image
-                        Image.fromarray(init_img.astype(np.uint8)).save( f"{this_image_path}_input.{varargs.format}")
+                        shutil.copyfile(varargs.init_img, f"{this_image_path}_input.{pathlib.Path(varargs.init_img).suffix}")
 
                         # Save image metadata
                         json_object = json.dumps(json_dictionary, indent=4)

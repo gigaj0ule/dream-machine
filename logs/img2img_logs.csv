@@ -15,4 +15,7 @@ hot horse,output_txt2img,/home/razor/Desktop/image.png,,,50,0.0,1,,,0.75,5,0,7.5
 hot horse,output_img2img,/home/razor/Desktop/image.png,,,50,0.0,1,512.0,768.0,0.75,5,0,7.5,,516758,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
 hot horse,output_img2img,/home/razor/Desktop/image.png,,,50,0.0,1,512.0,768.0,0.75,1,0,7.5,,283606,cuda,1,True,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
 turtle,output_img2img,/home/razor/Desktop/disaster.jpg' ,,,50,0.0,1,512.0,768.0,0.75,1,0,7.5,,633671,cuda,1,True,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+turtle,output_img2img,/home/razor/Desktop/disaster.jpg,,,50,0.0,1,512.0,768.0,0.75,1,0,7.5,,435212,cuda,1,True,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+turtle,output_img2img,/home/razor/Desktop/disaster.jpg,,,50,0.0,1,512.0,768.0,0.75,1,0,7.5,,435212,cuda,1,True,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+turtle,output_img2img,/home/razor/Desktop/disaster.jpg,,,50,0.0,1,512.0,768.0,0.75,1,0,7.5,,435212,cuda,1,True,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
 turtle,output_img2img,/home/razor/Desktop/disaster.jpg,,,50,0.0,1,512,768,0.75,1,0,7.5,,435212,cuda,1,True,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
