@@ -531,6 +531,9 @@ if __name__ == "__main__":
                         # Save this image
                         Image.fromarray(x_sample.astype(np.uint8)).save( f"{this_image_path}.{varargs.format}" )
 
+                        # Save reference image
+                        Image.fromarray(init_img.astype(np.uint8)).save( f"{this_image_path}_input.{varargs.format}")
+
                         # Save image metadata
                         json_object = json.dumps(json_dictionary, indent=4)
                         
