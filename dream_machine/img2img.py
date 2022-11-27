@@ -13,6 +13,7 @@ from pytorch_lightning import seed_everything
 #from torch import autocast
 from torch.cuda.amp import autocast
 from contextlib import contextmanager, nullcontext
+from einops import rearrange, repeat
 
 import sys
 sys.path.append('.')
@@ -20,7 +21,7 @@ from ldm.util import instantiate_from_config
 
 from optimUtils import split_weighted_subprompts, logger
 from transformers import logging
-# from samplers import CompVisDenoiser
+import pandas as pd
 logging.set_verbosity_error()
 
 
@@ -36,6 +37,25 @@ def load_model_from_config(ckpt, verbose=False):
         print(f"Global Step: {pl_sd['global_step']}")
     sd = pl_sd["state_dict"]
     return sd
+
+
+def load_img(path, h0, w0):
+
+    image = Image.open(path).convert("RGB")
+    w, h = image.size
+
+    print(f"loaded input image of size ({w}, {h}) from {path}")
+    if h0 is not None and w0 is not None:
+        h, w = h0, w0
+
+    w, h = map(lambda x: x - x % 64, (w, h))  # resize to integer multiple of 32
+
+    print(f"New image size ({w}, {h})")
+    image = image.resize((w, h), resample=Image.LANCZOS)
+    image = np.array(image).astype(np.float32) / 255.0
+    image = image[None].transpose(0, 3, 1, 2)
+    image = torch.from_numpy(image)
+    return 2.0 * image - 1.0
 
 
 # Entry
@@ -59,27 +79,43 @@ if __name__ == "__main__":
         type=str, 
         nargs="?", 
         help="Dir to write results to", 
-        default="output_txt2img"
+        default="output_img2img"
     )
+
+    parser.add_argument(
+        "--init_img", 
+        type=str, 
+        nargs="?", 
+        help="Path to the input image",
+        default=None
+    )
+
+    """
+    parser.add_argument(
+        "--skip_grid",
+        action="store_true",
+        help="do not save a grid, only individual samples. Helpful when evaluating lots of samples",
+    )
+
+    parser.add_argument(
+        "--skip_save",
+        action="store_true",
+        help="do not save individual samples. For speed measurements.",
+    )
+    """
 
     parser.add_argument(
         "--ddim_steps",
         type=int,
         default=50,
-        help="Number of DDIM sampling steps",
-    )
-
-    parser.add_argument(
-        "--fixed_code",
-        action="store_true",
-        help="If enabled, uses the same starting code across samples ",
+        help="Number of ddim sampling steps",
     )
 
     parser.add_argument(
         "--ddim_eta",
         type=float,
         default=0.0,
-        help="DDIM eta (eta=0.0 corresponds to deterministic sampling",
+        help="Ddim eta (eta=0.0 corresponds to deterministic sampling",
     )
 
     parser.add_argument(
@@ -93,30 +129,23 @@ if __name__ == "__main__":
         "--H",
         type=int,
         default=512,
-        help="Image height, must be multiple of 64",
+        help="Image height, must be multiple of 64"
     )
 
     parser.add_argument(
         "--W",
         type=int,
         default=768,
-        help="Image width, must be multiple of 64",
+        help="Image width, must be multiple of 64"
     )
 
     parser.add_argument(
-        "--C",
-        type=int,
-        default=4,
-        help="Latent channels",
+        "--strength",
+        type=float,
+        default=0.75,
+        help="Strength for noising/unnoising. 1.0 corresponds to full destruction of information in init image",
     )
 
-    parser.add_argument(
-        "--f",
-        type=int,
-        default=8,
-        help="Downsampling factor",
-    )
-    
     parser.add_argument(
         "--n_samples",
         type=int,
@@ -137,13 +166,13 @@ if __name__ == "__main__":
         default=7.5,
         help="Unconditional guidance scale: eps = eps(x, empty) + scale * (eps(x, cond) - eps(x, empty))",
     )
-    
+
     parser.add_argument(
         "--from-file",
         type=str,
         help="If specified, load prompts from this file",
     )
-    
+
     parser.add_argument(
         "--seed",
         type=int,
@@ -171,7 +200,7 @@ if __name__ == "__main__":
         default=True,
         help="Reduces inference time on the expense of 1GB VRAM",
     )
-
+    
     parser.add_argument(
         "--precision", 
         type=str,
@@ -179,21 +208,21 @@ if __name__ == "__main__":
         choices=["full", "autocast"],
         default="autocast"
     )
-
+    
     parser.add_argument(
         "--format",
         type=str,
         help="Output image format",
         choices=["jpg", "png"],
-        default="png",
+        default="png"
     )
 
     parser.add_argument(
         "--sampler",
         type=str,
-        help="Sampler type (default plms)",
-        choices=["ddim", "plms","heun", "euler", "euler_a", "dpm2", "dpm2_a", "lms"],
-        default="plms",
+        help="sampler",
+        choices=["ddim"],
+        default="ddim"
     )
 
     # Get the AI Model
@@ -203,14 +232,14 @@ if __name__ == "__main__":
         help="Path to checkpoint of model",
         default=None
     )
-    
+
     # Parse args
     varargs = parser.parse_args()
 
     # Check for saved settings
     try:
 
-        with open("txt2img.json", "r") as f:
+        with open("img2img.json", "r") as f:
             saved_args = json.load(f)
 
         print(saved_args)
@@ -259,7 +288,6 @@ if __name__ == "__main__":
         print(f"║ You have selected {varargs.ckpt}")
         print(f"╚══════════════════")
 
-
     # If no prompt exists...
     if varargs.prompt == None:
 
@@ -280,10 +308,30 @@ if __name__ == "__main__":
         print(f"╚══════════════════")
 
 
+    # If no prompt exists...
+    if varargs.init_img == None:
+
+        print(f"╔══════════════════")
+        print(f"║ No init img was specified with --init_img")
+        print(f"║")
+
+        ai_init_img = str(input(f"║ Where can I find an image? "))
+
+        varargs.init_img = str(ai_init_img).strip('"').strip("'").strip(" ")
+
+        # If empty, reload last
+        if(len(varargs.init_img) < 1 and saved_args is not None):
+            varargs.init_img = saved_args.get('init_img')                
+            
+        print(f"║")
+        print(f"║ Using '{varargs.init_img}'")
+        print(f"╚══════════════════")
+
     tic = time.time()
     os.makedirs(varargs.outdir, exist_ok=True)
     outpath = varargs.outdir
     grid_count = len(os.listdir(outpath)) - 1
+
 
     # If no seed exists...
     if varargs.seed == None:
@@ -301,25 +349,24 @@ if __name__ == "__main__":
     json_dictionary = {
         "prompt": varargs.prompt,
         "ckpt": varargs.ckpt,
-        "seed": varargs.seed
+        "seed": varargs.seed, 
+        "init_img": varargs.init_img
     }
-    
+
     # Serializing json
     json_object = json.dumps(json_dictionary, indent=4)
     
     # Writing to .json
-    with open("txt2img.json", "w") as outfile:
+    with open("img2img.json", "w") as outfile:
         outfile.write(json_object)
-
+    
     # Seed AI
-    #with NoStdStreams(): 
     seed_everything(varargs.seed)
 
     # Logging
-    logger(vars(varargs), log_csv = f"{varargs.outdir}/txt2img_log.csv")
+    logger(vars(varargs), log_csv = "logs/img2img_logs.csv")
 
     sd = load_model_from_config(f"{varargs.ckpt}")
-
     li, lo = [], []
     for key, value in sd.items():
         sp = key.split(".")
@@ -339,11 +386,15 @@ if __name__ == "__main__":
 
     config = OmegaConf.load(f"{config}")
 
+    assert os.path.isfile(varargs.init_img)
+
+    init_img = load_img(varargs.init_img, varargs.H, varargs.W).to(varargs.device)
+
     model = instantiate_from_config(config.modelUNet)
     _, _ = model.load_state_dict(sd, strict=False)
     model.eval()
-    model.unet_bs = varargs.unet_bs
     model.cdevice = varargs.device
+    model.unet_bs = varargs.unet_bs
     model.turbo = varargs.turbo
 
     modelCS = instantiate_from_config(config.modelCondStage)
@@ -355,19 +406,15 @@ if __name__ == "__main__":
     _, _ = modelFS.load_state_dict(sd, strict=False)
     modelFS.eval()
     del sd
-
     if varargs.device != "cpu" and varargs.precision == "autocast":
         model.half()
         modelCS.half()
-
-    start_code = None
-    if varargs.fixed_code:
-        start_code = torch.randn([varargs.n_samples, varargs.C, varargs.H // varargs.f, varargs.W // varargs.f], device=varargs.device)
-
+        modelFS.half()
+        init_img = init_img.half()
 
     batch_size = varargs.n_samples
-    
     n_rows = varargs.n_rows if varargs.n_rows > 0 else batch_size
+
 
     if not varargs.from_file:
         assert varargs.prompt is not None
@@ -389,6 +436,23 @@ if __name__ == "__main__":
         print(f"╚══════════════════")
 
 
+    modelFS.to(varargs.device)
+
+    init_img = repeat(init_img, "1 ... -> b ...", b=batch_size)
+    init_latent = modelFS.get_first_stage_encoding(modelFS.encode_first_stage(init_img))  # move to latent space
+
+    if varargs.device != "cpu":
+        mem = torch.cuda.memory_allocated(device=varargs.device) / 1e6
+        modelFS.to("cpu")
+        while torch.cuda.memory_allocated(device=varargs.device) / 1e6 >= mem:
+            time.sleep(1)
+
+
+    assert 0.0 <= varargs.strength <= 1.0, "can only work with strength in [0.0, 1.0]"
+    t_enc = int(varargs.strength * varargs.ddim_steps)
+    print(f"target t_enc is {t_enc} steps")
+
+
     if varargs.precision == "autocast" and varargs.device != "cpu":
         precision_scope = autocast
     else:
@@ -398,10 +462,9 @@ if __name__ == "__main__":
     with torch.no_grad():
 
         all_samples = list()
-        
         print(f"╔══════════════════")
-        for n in trange(varargs.n_iter, desc="║ Sampling"):
-            for prompts in tqdm(data, desc="║ data"):
+        for n in trange(varargs.n_iter, desc="Sampling"):
+            for prompts in tqdm(data, desc="data"):
 
                 sample_path = os.path.join(outpath, "_".join(re.split(":| ", prompts[0])))[:150]
                 os.makedirs(sample_path, exist_ok=True)
@@ -409,6 +472,7 @@ if __name__ == "__main__":
 
                 #with precision_scope("cuda"):
                 with precision_scope(True):
+
                     modelCS.to(varargs.device)
                     uc = None
                     if varargs.scale != 1.0:
@@ -429,31 +493,33 @@ if __name__ == "__main__":
                     else:
                         c = modelCS.get_learned_conditioning(prompts)
 
-                    shape = [varargs.n_samples, varargs.C, varargs.H // varargs.f, varargs.W // varargs.f]
-
                     if varargs.device != "cpu":
-                        mem = torch.cuda.memory_allocated() / 1e6
+                        mem = torch.cuda.memory_allocated(device=varargs.device) / 1e6
                         modelCS.to("cpu")
-                        while torch.cuda.memory_allocated() / 1e6 >= mem:
+                        while torch.cuda.memory_allocated(device=varargs.device) / 1e6 >= mem:
                             time.sleep(1)
 
+                    # encode (scaled latent)
+                    z_enc = model.stochastic_encode(
+                        init_latent,
+                        torch.tensor([t_enc] * batch_size).to(varargs.device),
+                        varargs.seed,
+                        varargs.ddim_eta,
+                        varargs.ddim_steps,
+                    )
+                    # decode it
                     samples_ddim = model.sample(
-                        S=varargs.ddim_steps,
-                        conditioning=c,
-                        seed=varargs.seed,
-                        shape=shape,
-                        verbose=False,
+                        t_enc,
+                        c,
+                        z_enc,
                         unconditional_guidance_scale=varargs.scale,
                         unconditional_conditioning=uc,
-                        eta=varargs.ddim_eta,
-                        x_T=start_code,
-                        sampler = varargs.sampler,
+                        sampler = varargs.sampler
                     )
 
                     modelFS.to(varargs.device)
-
-                    print(samples_ddim.shape)
                     print(f"║ saving images")
+
                     for i in range(batch_size):
 
                         x_samples_ddim = modelFS.decode_first_stage(samples_ddim[i].unsqueeze(0))
@@ -481,14 +547,14 @@ if __name__ == "__main__":
                         varargs.seed += 1
                         base_count += 1
 
-
                     if varargs.device != "cpu":
-                        mem = torch.cuda.memory_allocated() / 1e6
+                        mem = torch.cuda.memory_allocated(device=varargs.device) / 1e6
                         modelFS.to("cpu")
-                        while torch.cuda.memory_allocated() / 1e6 >= mem:
+                        while torch.cuda.memory_allocated(device=varargs.device) / 1e6 >= mem:
                             time.sleep(1)
+
                     del samples_ddim
-                    print(f"║ memory_final = ", torch.cuda.memory_allocated() / 1e6)
+                    print(f"║ memory_final = ", torch.cuda.memory_allocated(device=varargs.device) / 1e6)
 
         print(f"╚══════════════════")
 

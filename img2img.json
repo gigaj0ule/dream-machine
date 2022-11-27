@@ -1,0 +1,6 @@
+{
+    "prompt": "turtle",
+    "ckpt": "./ai_models/hentai-diffusion-17.ckpt",
+    "seed": 435212,
+    "init_img": "/home/razor/Desktop/disaster.jpg"
+}

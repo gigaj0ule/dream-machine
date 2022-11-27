@@ -1,3 +1,4 @@
 ai_models/*.ckpt
 txt2img.json
 output_txt2img/
+output_img2img/

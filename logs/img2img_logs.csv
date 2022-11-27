@@ -1,0 +1,18 @@
+prompt,outdir,init_img,skip_grid,skip_save,ddim_steps,ddim_eta,n_iter,H,W,strength,n_samples,n_rows,scale,from_file,seed,device,unet_bs,turbo,precision,format,sampler,ckpt,init_image
+a painting of a virus monster playing guitar,outputs/img2img-samples,,False,False,50,0.0,1,,,0.75,5,0,7.5,,786574,cuda,1,False,autocast,png,ddim,,
+a painting of a virus monster playing guitar,outputs/img2img-samples,,False,False,50,0.0,1,,,0.75,5,0,7.5,,361741,cuda,1,False,autocast,png,ddim,,
+a painting of a virus monster playing guitar,outputs/img2img-samples,,False,False,50,0.0,1,,,0.75,5,0,7.5,,785681,cuda,1,False,autocast,png,ddim,,
+a painting of a virus monster playing guitar,outputs/img2img-samples,,False,False,50,0.0,1,,,0.75,5,0,7.5,,624788,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+a painting of a virus monster playing guitar,outputs/img2img-samples,,False,False,50,0.0,1,,,0.75,5,0,7.5,,950845,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+a painting of a virus monster playing guitar,outputs/img2img-samples,,False,False,50,0.0,1,,,0.75,5,0,7.5,,416053,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+ham,output_txt2img,,False,False,50,0.0,1,,,0.75,5,0,7.5,,452106,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+ham,output_txt2img,,,,50,0.0,1,,,0.75,5,0,7.5,,628250,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,'/home/razor/Desktop/image.png' 
+turtle,output_txt2img,'/home/razor/Desktop/image.png' ,,,50,0.0,1,,,0.75,5,0,7.5,,491207,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+turtles,output_txt2img,/home/razor/Desktop/image.png,,,50,0.0,1,,,0.75,5,0,7.5,,534927,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+hot elf,output_txt2img,'/home/razor/Desktop/image.png' ,,,50,0.0,1,,,0.75,5,0,7.5,,903254,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+hot horse,output_txt2img,/home/razor/Desktop/image.png,,,50,0.0,1,,,0.75,5,0,7.5,,376116,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+hot horse,output_txt2img,/home/razor/Desktop/image.png,,,50,0.0,1,,,0.75,5,0,7.5,,712844,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+hot horse,output_img2img,/home/razor/Desktop/image.png,,,50,0.0,1,512.0,768.0,0.75,5,0,7.5,,516758,cuda,1,False,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+hot horse,output_img2img,/home/razor/Desktop/image.png,,,50,0.0,1,512.0,768.0,0.75,1,0,7.5,,283606,cuda,1,True,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+turtle,output_img2img,/home/razor/Desktop/disaster.jpg' ,,,50,0.0,1,512.0,768.0,0.75,1,0,7.5,,633671,cuda,1,True,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
+turtle,output_img2img,/home/razor/Desktop/disaster.jpg,,,50,0.0,1,512,768,0.75,1,0,7.5,,435212,cuda,1,True,autocast,png,ddim,./ai_models/hentai-diffusion-17.ckpt,
